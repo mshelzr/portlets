@@ -7,7 +7,6 @@ import java.util.List;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
-import javax.portlet.PortletSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -29,6 +29,7 @@ import com.lowagie.text.DocumentException;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfWriter;
 import com.mycompany.cu.dto.PersonaDTO;
+import com.mycompany.cu.dto.UpArchivo;
 
 @Controller
 @RequestMapping("VIEW")
@@ -92,6 +93,15 @@ public class DemoController {
 
 		return "view";
 	}
+	
+	@RequestMapping(params="read=word",method=RequestMethod.POST)
+	protected String readWord(@ModelAttribute("upArchivo")UpArchivo UpArchivo){
+		System.out.println("dentro del method");
+		
+		System.out.println("Content: "+ UpArchivo.getFileData().getOriginalFilename());
+		return "view";
+	}
+	
 
 	@SuppressWarnings("unchecked")
 	@RequestMapping(params="reportType=pdf")
