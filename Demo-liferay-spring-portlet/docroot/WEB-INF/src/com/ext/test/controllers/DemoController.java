@@ -2,22 +2,29 @@ package com.ext.test.controllers;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.portlet.ActionRequest;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.docx4j.openpackaging.exceptions.Docx4JException;
+import org.docx4j.openpackaging.io.LoadFromZipNG;
+import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
+import org.docx4j.wml.Body;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.portlet.bind.annotation.ActionMapping;
 
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
@@ -40,13 +47,13 @@ public class DemoController {
 
 	@RequestMapping  
 	protected String defaultView(PortletRequest request,Model model) {
-//		193-27782488-0-17
+		//		193-27782488-0-17
 		System.out.println("dentro del default");
 		HttpServletRequest httpServletRequest = PortalUtil.getHttpServletRequest(request);
 		HttpSession session=httpServletRequest.getSession();
-//		PortletSession session=request.getPortletSession();
+		//		PortletSession session=request.getPortletSession();
 		session.setAttribute("listaPersona",listPersona());
-
+		model.addAttribute("upArchivo",new UpArchivo());
 		return "view";
 	}
 
@@ -57,8 +64,8 @@ public class DemoController {
 
 		HttpServletRequest httpServletRequest = PortalUtil.getHttpServletRequest(request);
 		HttpSession session=httpServletRequest.getSession();
-//		PortletSession session=request.getPortletSession();
-		
+		//		PortletSession session=request.getPortletSession();
+
 		List<PersonaDTO> personas=new ArrayList<PersonaDTO>();
 		personas=(List<PersonaDTO>)session.getAttribute("listaPersona");
 		//personas=listPersona();
@@ -93,15 +100,35 @@ public class DemoController {
 
 		return "view";
 	}
-	
-	@RequestMapping(params="read=word",method=RequestMethod.POST)
-	protected String readWord(@ModelAttribute("upArchivo")UpArchivo UpArchivo){
+
+	@ActionMapping(params="read=word")
+	protected void readWord(ActionRequest request,@ModelAttribute("upArchivo")UpArchivo upArchivo){
 		System.out.println("dentro del method");
 		
-		System.out.println("Content: "+ UpArchivo.getFileData().getOriginalFilename());
-		return "view";
+		System.out.println("/--------------------------------------------------------------------/");
+		InputStream stream;
+		try {
+			stream = upArchivo.getFileData().getInputStream();
+			LoadFromZipNG loader = new LoadFromZipNG(); 
+			WordprocessingMLPackage pkg = (WordprocessingMLPackage)loader.get(stream); 
+			MainDocumentPart mdp=pkg.getMainDocumentPart();
+			org.docx4j.wml.Document dmt=(org.docx4j.wml.Document)mdp.getJaxbElement();
+			List<Object> listaux=dmt.getBody().getContent();
+			System.out.println("salida de body: ");
+			
+			for(Object obj : listaux){
+				System.out.println(obj);
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println(e);
+		} catch(Docx4JException de){
+			de.printStackTrace();
+			System.out.println(de);
+		}
 	}
-	
 
 	@SuppressWarnings("unchecked")
 	@RequestMapping(params="reportType=pdf")
@@ -113,7 +140,7 @@ public class DemoController {
 		HttpServletResponse httpServletResponse = (HttpServletResponse) PortalUtil.getHttpServletResponse(portletResponse);
 
 		HttpSession session=httpServletRequest.getSession();
-//		List<PersonaDTO> personas=listPersona();
+		//		List<PersonaDTO> personas=listPersona();
 		List<PersonaDTO> personas=(List<PersonaDTO>)session.getAttribute("listaPersona");
 
 		Document document = new Document();
@@ -175,7 +202,7 @@ public class DemoController {
 				if(aux>-1 || aux<=24){
 					httpServletResponse.setContentType("application/pdf");
 				}
-			//Si es un navegador diferente a opera se devuelve sin la extencion .pdf
+				//Si es un navegador diferente a opera se devuelve sin la extencion .pdf
 				ServletResponseUtil.sendFile(httpServletRequest, httpServletResponse, "GenerateReport", baos.toByteArray());
 			}
 

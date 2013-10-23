@@ -14,9 +14,9 @@
 	<portlet:param name="action" value="toPdf"></portlet:param>
 </portlet:renderURL>
 
-<portlet:renderURL var="tomsword">
+<portlet:actionURL var="tomsword">
 	<portlet:param name="read" value="word"/>
-</portlet:renderURL>
+</portlet:actionURL> 
 		
 <portlet:defineObjects />
 <form:form id="fmid" >
@@ -37,13 +37,11 @@
 	<br/>
 	<input type="button" value="Submit"
     onClick="location.href = '<portlet:resourceURL><portlet:param name="reportType" value="pdf" /></portlet:resourceURL>'" />
-	<br/>
-	<label>Load a MS WORD</label>
-	<input type="file" name="field" />
-	<input type="submit" value="Cargar"  /> 
 </form:form>
-<form:form commandName="upArchivo" enctype="multipart/form-data" method="post" action="${tomsword}">
-	<label>Load a MS WORD</label> <form:input type="file" path="fileData" />
+
+<form:form  method="POST" commandName="upArchivo" enctype="multipart/form-data" action="${tomsword}">
+	<label>Name</label> <input name="nombre"></input>
 	<br/>
+	<label>File</label> <input name="fileData" type="file"></input>
 	<input type="submit" value="Cargar"  /> 
 </form:form>
