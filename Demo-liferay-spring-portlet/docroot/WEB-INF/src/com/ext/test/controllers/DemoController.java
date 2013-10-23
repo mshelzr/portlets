@@ -1,8 +1,9 @@
 package com.ext.test.controllers;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,11 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.docx4j.openpackaging.exceptions.Docx4JException;
-import org.docx4j.openpackaging.io.LoadFromZipNG;
-import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
-import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
-import org.docx4j.wml.Body;
+import org.apache.poi.hwpf.HWPFDocument;
+import org.apache.poi.hwpf.extractor.WordExtractor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -104,30 +102,49 @@ public class DemoController {
 	@ActionMapping(params="read=word")
 	protected void readWord(ActionRequest request,@ModelAttribute("upArchivo")UpArchivo upArchivo){
 		System.out.println("dentro del method");
-		
+
 		System.out.println("/--------------------------------------------------------------------/");
-		InputStream stream;
+		File file = null;
+		WordExtractor extractor = null ;
 		try {
-			stream = upArchivo.getFileData().getInputStream();
-			LoadFromZipNG loader = new LoadFromZipNG(); 
-			WordprocessingMLPackage pkg = (WordprocessingMLPackage)loader.get(stream); 
-			MainDocumentPart mdp=pkg.getMainDocumentPart();
-			org.docx4j.wml.Document dmt=(org.docx4j.wml.Document)mdp.getJaxbElement();
-			List<Object> listaux=dmt.getBody().getContent();
-			System.out.println("salida de body: ");
-			
-			for(Object obj : listaux){
-				System.out.println(obj);
+
+			file = new File("C:/docs.doc");
+			FileInputStream fis=new FileInputStream(file.getAbsolutePath());
+
+			System.out.println("Antes de detectar el error");
+			HWPFDocument document=new HWPFDocument(fis);
+			extractor = new WordExtractor(document);
+			String [] fileData = extractor.getParagraphText();
+			for(int i=0;i<fileData.length;i++){
+				if(fileData[i] != null)
+					System.out.println(fileData[i]);
 			}
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.out.println(e);
-		} catch(Docx4JException de){
-			de.printStackTrace();
-			System.out.println(de);
+		}catch(Exception exep){
+			exep.printStackTrace();
+			System.out.println(exep);
 		}
+		//		InputStream stream;
+		//		try {
+		//			stream = upArchivo.getFileData().getInputStream();
+		//			LoadFromZipNG loader = new LoadFromZipNG(); 
+		//			WordprocessingMLPackage pkg = (WordprocessingMLPackage)loader.get(stream); 
+		//			MainDocumentPart mdp=pkg.getMainDocumentPart();
+		//			org.docx4j.wml.Document dmt=(org.docx4j.wml.Document)mdp.getJaxbElement();
+		//			List<Object> listaux=dmt.getBody().getContent();
+		//			System.out.println("salida de body: ");
+		//			
+		//			for(Object obj : listaux){
+		//				System.out.println(obj);
+		//			}
+		//			
+		//		} catch (IOException e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//			System.out.println(e);
+		//		} catch(Docx4JException de){
+		//			de.printStackTrace();
+		//			System.out.println(de);
+		//		}
 	}
 
 	@SuppressWarnings("unchecked")
